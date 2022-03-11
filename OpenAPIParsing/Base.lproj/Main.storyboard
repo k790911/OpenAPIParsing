@@ -30,6 +30,9 @@
                             <outlet property="delegate" destination="v61-XQ-SqL" id="5Wl-uo-cBb"/>
                         </connections>
                     </tableView>
+                    <connections>
+                        <outlet property="myTableView" destination="hw6-mj-M1m" id="Yvl-PT-HpP"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Q6Y-xT-uuF" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>

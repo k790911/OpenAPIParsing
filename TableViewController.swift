@@ -7,11 +7,13 @@
 
 import UIKit
 
-let name = ["aaa", "bbb", "ccc", "ddd", "eee"]
-
 class TableViewController: UITableViewController {
 
     let movieURL = "https://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchDailyBoxOfficeList.json?key=e06b39ec9f04a2c50b9db8057ab7cd56&targetDt=20220309"
+    
+    var movieData: MovieData?
+    
+    @IBOutlet var myTableView: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,22 +29,25 @@ class TableViewController: UITableViewController {
     func getData() {
         if let url = URL(string: movieURL) {
             let session = URLSession(configuration: .default)
-            let task = session.dataTask(with: url) { data, response, error in
+            let task = session.dataTask(with: url) { [self] data, response, error in
                 if error != nil {
                     print(error!)
                     return
                 }
                 if let JSONdata = data {
                     //let dataString = String(data: JSONdata, encoding: .utf8)
-                    //print(dataString!)
                     let decoder = JSONDecoder()
                     do {
                         let decodedData = try decoder.decode(MovieData.self, from: JSONdata)
-                        print(decodedData.boxOfficeResult.dailyBoxOfficeList[0].movieNm)
+                        self.movieData = decodedData
+                        DispatchQueue.main.async {
+                            // 테이블 리로드 데이터는 메인쓰레드에서 처리 해야함.
+                            // 하지만 본 클로져는 백그라운드 쓰레드(네트워크 처리) 이므로 메인쓰레드로 올려야 함.
+                            self.myTableView.reloadData()
+                        }
                     } catch {
                         print(error)
                     }
-                    
                 }
             }
             task.resume()
@@ -58,19 +63,21 @@ class TableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return name.count
+        return movieData?.boxOfficeResult.dailyBoxOfficeList.count ?? 0
     }
 
-    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-
+        
         // Configure the cell...
+        cell.textLabel?.text = movieData?.boxOfficeResult.dailyBoxOfficeList[indexPath.row].movieNm
 
-        cell.textLabel?.text = name[indexPath.row]
         return cell
     }
 
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 80
+    }
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
